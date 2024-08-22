@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import GitTimeGraph from './GitTimeGraph'
-import { useSetRecoilState } from 'recoil'
 
 let id = 0
 class gitVisualizer {
@@ -27,28 +26,46 @@ class gitVisualizer {
         }
     }
 
-    reset(id: number, flag: string = '--mixed') {
+    reset(id: number, flag: string) {
         if (!this.localBranch) {
             console.log("Please initialize a local repo. Run git init to initialize a local git repo")
             return
         }
         let resestBranch: { data: string, id: number }[] = []
+        let softStage: any
         for (let node of this.localBranch) {
             resestBranch.push(node)
             if (node.id == id) {
                 break
             }
         }
-        this.localBranch = resestBranch
+        console.log(resestBranch[resestBranch.length-1].id, this.localBranch[this.localBranch.length-1].id)
+        if (resestBranch[resestBranch.length-1].id != this.localBranch[this.localBranch.length-1].id) {
+            softStage = this.localBranch[this.localBranch.length-1]
+        }
+
+        console.log(flag)
+        console.log(this.localBranch)
         if (flag == '--mixed') {
+            console.log('in mixed')
             return
         }
-
+        
         if (flag == '--hard') {
+            console.log('in hard')
             return [this.localBranch[this.localBranch.length - 1].data, "updated wordingDir"]
         }
-
-
+        if (flag == '--soft') {
+            console.log("reaching soft")
+            console.log(resestBranch[resestBranch.length-1].id, this.localBranch[this.localBranch.length-1].id)
+            if (resestBranch[resestBranch.length-1].id != this.localBranch[this.localBranch.length-1].id) {
+                console.log(softStage.data)
+                this.stage.push({data: softStage.data, id: this.localBranch[this.localBranch.length-1].id++})
+                console.log(this.stage)
+                return
+            }
+        }
+        this.localBranch = resestBranch
     }
 
     init() {
@@ -90,6 +107,7 @@ class gitVisualizer {
             console.log(data)
             console.log('remote branch is not upto date, please push the changes')
         }
+        console.log(this.stage)
     }
 
     add(data: string) {
@@ -97,10 +115,6 @@ class gitVisualizer {
             console.log("Please initialize a local repo. Run git init to initialize a local git repo")
             return
         }
-        // if (this.stage.length == 0) {
-        //     console.log("local branch is upto date")
-        //     return
-        // }
         if (this.localBranch.length > 0) {
             if (this.localBranch[this.localBranch.length - 1]?.data == data) {
                 console.log('local branch is upto date')
@@ -140,16 +154,11 @@ class gitVisualizer {
         }
         this.stage.forEach(val => this.localBranch?.push({ data: val.data, id: val.id }))
         this.stage = []
-        console.log(this.localBranch)
     }
 
     push() {
         if (!this.localBranch) {
             console.log("Please initialize a local repo. Run git init to initialize a local git repo")
-            return
-        }
-        if (this.remoteBranch.length == this.localBranch?.length) {
-            console.log('nothing to push')
             return
         }
 
@@ -184,15 +193,17 @@ class gitVisualizer {
             console.log('no such command')
             return
         }
+        if (func[1] && func[2]) {
+            console.log(func[1], func[2])
+            const wordingDir = fun(func[1], func[2])
+            if (wordingDir) {
+                if (wordingDir[1] == 'updated wordingDir') {
+                    return wordingDir
+                }
+            }
+        }
         if (func[1]) {
             fun([func[1]])
-        }
-        if (func[1] && func[2]) {
-            const wordingDir = fun(func[1], func[2])
-            console.log(wordingDir)
-            if (wordingDir[1] == 'updated wordingDir') {
-                return wordingDir
-            }
         }
         if (data && id) {
             fun({ data, id })
@@ -221,7 +232,6 @@ const GitVisualizer = () => {
             return
         }
         const wordingDir = git.execCommand([com[1], com[2], com[3]], data)
-        console.log(wordingDir)
         if (wordingDir) {
             if (wordingDir[1] == 'updated wordingDir') {
                 setData(wordingDir[0])
