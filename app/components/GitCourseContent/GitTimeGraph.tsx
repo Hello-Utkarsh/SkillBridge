@@ -4,7 +4,7 @@ const GitTimeGraph = (props: any) => {
   const branch: any = props.branch
   return (
     <div className='flex-col h-20 px-2'>
-      <div id={props.branchid} className='flex'>
+      <div key={props.branchid} className='flex'>
         <div className='h-[2px] w-4 mt-[2px] bg-gray-500 rounded-md' />
         {branch && branch.map((node: { data: string, id: number }) => {
           return (
