@@ -27,8 +27,35 @@ class gitVisualizer {
             'log': this.log.bind(this),
             'reset': this.reset.bind(this),
             'pull': this.pull.bind(this),
-            'stash': this.stash.bind(this)
+            'stash': this.stash.bind(this),
+            'revert': this.revert.bind(this)
         }
+    }
+
+    revert({ command }: { command: number | string }) {
+        if (!this.localBranch) {
+            this.logs += "Remote branch is empty\n"
+            return
+        }
+        if (!command) {
+            this.logs += "No commit with this ID found\n"
+            return
+        }
+
+        let revertId: number
+
+        if (typeof command == 'number') {
+            revertId = command-1
+        } else if (command == 'head') {
+            revertId = this.localBranch[this.localBranch.length-2].id
+        }
+
+
+        const revertData = this.localBranch?.find(v => v.id == revertId)?.data || ""
+
+        this.localBranch?.push({ data: revertData, id: this.localBranch[this.localBranch.length-1].id })
+        this.logs += `Reverted the changes made in commitID: ${command}\n`
+        return [this.localBranch[this.localBranch?.length - 1].data, 'updated workingDir']
     }
 
     stash({ data, command }: { data: string, command: string }) {
@@ -230,6 +257,7 @@ class gitVisualizer {
         console.log(data, func, func[1])
         let workingDir: any
         if (!fun) {
+            this.logs += "no such command\n"
             console.log('no such command')
             return
         }
